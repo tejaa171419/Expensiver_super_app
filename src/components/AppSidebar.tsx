@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { 
   Users, 
   User, 
@@ -17,6 +17,8 @@ import {
   Bell
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -35,6 +37,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { ExpensiverCompactLogo } from "@/components/ExpensiverLogo";
 
 interface AppSidebarProps {
   activeMode: 'group' | 'personal';
@@ -47,6 +50,7 @@ export function AppSidebar({ activeMode, onModeChange, activeSubNav, onSubNavCha
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const navigate = useNavigate();
   const [groupOpen, setGroupOpen] = useState(activeMode === 'group');
   const [personalOpen, setPersonalOpen] = useState(activeMode === 'personal');
 
@@ -92,16 +96,19 @@ export function AppSidebar({ activeMode, onModeChange, activeSubNav, onSubNavCha
       {/* Header */}
       <SidebarHeader className="border-b border-white/10 p-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-            <Wallet className="w-5 h-5 text-white" />
-          </div>
+          <ExpensiverCompactLogo 
+            size="md"
+            variant="default"
+            onClick={() => navigate('/')}
+            className="cursor-pointer"
+          />
           {!collapsed && (
             <div>
               <h2 className="text-gradient-cyber font-bold text-lg">
-                Zenith Wallet
+                Expensiver
               </h2>
               <p className="text-xs text-muted-foreground">
-                Smart Finance Manager
+                Smart Expense Tracker
               </p>
             </div>
           )}
@@ -240,23 +247,45 @@ export function AppSidebar({ activeMode, onModeChange, activeSubNav, onSubNavCha
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Footer */}
+      {/* Enhanced Footer */}
       <SidebarFooter className="border-t border-white/10 p-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-success flex items-center justify-center">
-            <User className="w-4 h-4 text-white" />
-          </div>
-          {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">
-                User Account
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Premium Plan
-              </p>
-            </div>
-          )}
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-start p-2 h-auto bg-white/5 hover:bg-white/10 transition-colors rounded-lg"
+            >
+              <div className="flex items-center gap-3 w-full">
+                <Avatar className="w-8 h-8 border border-primary/20">
+                  <AvatarImage src="" alt="Profile" />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs">
+                    <User className="w-4 h-4" />
+                  </AvatarFallback>
+                </Avatar>
+                {!collapsed && (
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white truncate">
+                      User Account
+                    </p>
+                    <p className="text-xs text-white/60">
+                      Premium Plan
+                    </p>
+                  </div>
+                )}
+              </div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-64 bg-black/95 backdrop-blur-xl border border-white/10">
+            <DropdownMenuItem onClick={() => navigate('/profile')} className="p-3 text-white/80 hover:text-white hover:bg-white/10">
+              <User className="w-4 h-4 mr-3" />
+              Profile Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem className="p-3 text-red-400 hover:text-red-300 hover:bg-red-500/10">
+              <LogOut className="w-4 h-4 mr-3" />
+              Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </SidebarFooter>
     </Sidebar>
   );

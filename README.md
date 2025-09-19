@@ -1,4 +1,15 @@
-# Welcome to your Lovable project
+# Expensiver - Smart Expense Tracker
+
+**Expensiver** is a modern, intelligent expense tracking application that helps you manage personal finances and group expenses with ease. Built with cutting-edge technologies for a seamless user experience.
+
+## Features
+
+- 🎯 **Smart Expense Tracking** - AI-powered insights and spending pattern analysis
+- 👥 **Group Management** - Create groups, split bills, and settle payments effortlessly
+- 📊 **Financial Analytics** - Detailed reports and visual spending insights
+- 🔒 **Secure Payments** - Bank-grade security for all transactions
+- 📱 **Mobile-First Design** - Responsive design optimized for all devices
+- 🎨 **Modern UI** - Beautiful glassmorphism design with smooth animations
 
 ## Project info
 

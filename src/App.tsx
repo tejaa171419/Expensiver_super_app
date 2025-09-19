@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { NavigationProvider } from "@/contexts/NavigationContext";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Groups from "./pages/Groups";
@@ -21,20 +22,22 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<Index />} />
-      {/* All main content is handled through Index.tsx */}
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/group/:groupId" element={<GroupDetails />} />
-      <Route path="/group/:groupId/chat" element={<GroupChat />} />
-      <Route path="/notifications" element={<Notifications />} />
-      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  </BrowserRouter>
+        <NavigationProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              {/* All main content is handled through Index.tsx */}
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/group/:groupId" element={<GroupDetails />} />
+              <Route path="/group/:groupId/chat" element={<GroupChat />} />
+              <Route path="/notifications" element={<Notifications />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </NavigationProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </ErrorBoundary>

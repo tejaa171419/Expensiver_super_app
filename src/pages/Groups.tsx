@@ -8,9 +8,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Users, Calendar, DollarSign, Settings, Eye, TrendingUp, UserPlus, Upload, Globe, Lock, Trash2, Search, Filter, SortAsc, Receipt, MessageSquare } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Users, Calendar, DollarSign, Settings, Eye, TrendingUp, UserPlus, Upload, Globe, Lock, Trash2, Search, Filter, SortAsc, Receipt, MessageSquare, Mail, Phone, Send, Copy, Share2, Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+
+interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  avatar?: string;
+  isRegistered: boolean;
+}
 
 interface Group {
   id: string;
@@ -40,23 +50,66 @@ const Groups = () => {
   const [description, setDescription] = useState("");
   const [privacy, setPrivacy] = useState("private");
   const [currency, setCurrency] = useState("USD");
-  const [memberEmails, setMemberEmails] = useState([""]);
+  
+  // Enhanced invitation state
+  const [inviteTab, setInviteTab] = useState('email');
+  const [emailList, setEmailList] = useState('');
+  const [phoneList, setPhoneList] = useState('');
+  const [inviteMessage, setInviteMessage] = useState('Hi! I\'d like to invite you to join our expense group. We can easily split and track shared expenses together.');
+  const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
+  const [contactSearch, setContactSearch] = useState('');
+  
+  // Mock contact data
+  const [contacts] = useState<Contact[]>([
+    {
+      id: '1',
+      name: 'Alice Johnson',
+      email: 'alice@company.com',
+      phone: '+1 234 567 8901',
+      isRegistered: true
+    },
+    {
+      id: '2',
+      name: 'Bob Smith',
+      email: 'bob@company.com', 
+      phone: '+1 234 567 8902',
+      isRegistered: true
+    },
+    {
+      id: '3',
+      name: 'Carol Wilson',
+      email: 'carol@gmail.com',
+      phone: '+1 234 567 8903',
+      isRegistered: false
+    },
+    {
+      id: '4',
+      name: 'David Brown',
+      email: 'david@yahoo.com',
+      phone: '+1 234 567 8904',
+      isRegistered: false
+    }
+  ]);
+  
+  // Filter contacts based on search
+  const filteredContacts = contacts.filter(contact =>
+    contact.name.toLowerCase().includes(contactSearch.toLowerCase()) ||
+    contact.email.toLowerCase().includes(contactSearch.toLowerCase())
+  );
 
   // Create Group Functions
-  const addMemberField = () => {
-    setMemberEmails([...memberEmails, ""]);
+  const toggleContactSelection = (contactId: string) => {
+    setSelectedContacts(prev => 
+      prev.includes(contactId) 
+        ? prev.filter(id => id !== contactId)
+        : [...prev, contactId]
+    );
   };
 
-  const updateMemberEmail = (index: number, email: string) => {
-    const updated = [...memberEmails];
-    updated[index] = email;
-    setMemberEmails(updated);
-  };
-
-  const removeMemberField = (index: number) => {
-    if (memberEmails.length > 1) {
-      setMemberEmails(memberEmails.filter((_, i) => i !== index));
-    }
+  const getInviteCount = () => {
+    const emails = emailList.split(/[,\n]/).filter(email => email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())).length;
+    const phones = phoneList.split(/[,\n]/).filter(phone => phone.trim() && /^[+]?[1-9]\d{1,14}$/.test(phone.replace(/[\s\-()]/g, ''))).length;
+    return emails + phones + selectedContacts.length;
   };
 
   const handleCreateGroup = () => {
@@ -88,25 +141,7 @@ const Groups = () => {
       return;
     }
 
-    // Validate member emails
-    const validEmails = memberEmails.filter(email => {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return email.trim() && emailRegex.test(email.trim());
-    });
-
-    const invalidEmails = memberEmails.filter(email => {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return email.trim() && !emailRegex.test(email.trim());
-    });
-
-    if (invalidEmails.length > 0) {
-      toast({
-        title: "Invalid Email",
-        description: "Please check the email addresses for typos",
-        variant: "destructive"
-      });
-      return;
-    }
+    const inviteCount = getInviteCount();
 
     // Add new group to the list with enhanced properties
     const newGroup: Group = {
@@ -115,7 +150,7 @@ const Groups = () => {
       description: description.trim() || "No description provided",
       currency,
       totalExpenses: 0,
-      memberCount: validEmails.length + 1, // +1 for the creator
+      memberCount: inviteCount + 1, // +1 for the creator
       yourBalance: 0,
       createdAt: new Date().toISOString().split('T')[0],
       isOwner: true,
@@ -126,8 +161,8 @@ const Groups = () => {
 
     setGroups(prev => [newGroup, ...prev]);
 
-    const memberInvites = validEmails.length > 0 
-      ? ` and sent ${validEmails.length} invitation${validEmails.length > 1 ? 's' : ''}` 
+    const memberInvites = inviteCount > 0 
+      ? ` and sent ${inviteCount} invitation${inviteCount > 1 ? 's' : ''}` 
       : '';
 
     toast({
@@ -138,7 +173,9 @@ const Groups = () => {
     // Reset form and close dialog
     setGroupName("");
     setDescription("");
-    setMemberEmails([""]);
+    setEmailList('');
+    setPhoneList('');
+    setSelectedContacts([]);
     setIsCreateDialogOpen(false);
   };
   
@@ -389,37 +426,195 @@ const Groups = () => {
                 </div>
               </div>
 
-              {/* Member Invites */}
+              {/* Enhanced Member Invites */}
               <div className="space-y-4">
                 <Label className="text-white font-medium">Invite Members (Optional)</Label>
-                {memberEmails.map((email, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input 
-                      placeholder="member@example.com" 
-                      value={email} 
-                      onChange={e => updateMemberEmail(index, e.target.value)} 
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/40" 
-                    />
-                    {memberEmails.length > 1 && (
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
-                        onClick={() => removeMemberField(index)}
-                        className="border-red-500/30 text-red-400 hover:bg-red-500/10"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
+                
+                <Tabs value={inviteTab} onValueChange={setInviteTab} className="space-y-4">
+                  <TabsList className="grid w-full grid-cols-3 bg-white/10">
+                    <TabsTrigger value="email" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                      <Mail className="w-4 h-4 mr-2" />
+                      Email & SMS
+                    </TabsTrigger>
+                    <TabsTrigger value="contacts" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                      <Phone className="w-4 h-4 mr-2" />
+                      Contacts
+                    </TabsTrigger>
+                    <TabsTrigger value="share" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                      <Share2 className="w-4 h-4 mr-2" />
+                      Share Link
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {/* Email & SMS Tab */}
+                  <TabsContent value="email" className="space-y-4">
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label className="text-white/80 text-sm">Email Addresses</Label>
+                        <Textarea
+                          value={emailList}
+                          onChange={(e) => setEmailList(e.target.value)}
+                          placeholder="Enter email addresses separated by commas or new lines...&#10;&#10;Example:&#10;john@example.com&#10;sarah@company.com, mike@startup.io"
+                          className="bg-white/10 border-white/20 text-white placeholder:text-white/40 min-h-[80px]"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-white/80 text-sm">Phone Numbers</Label>
+                        <Textarea
+                          value={phoneList}
+                          onChange={(e) => setPhoneList(e.target.value)}
+                          placeholder="Enter phone numbers separated by commas...&#10;&#10;Example:&#10;+1 234 567 8900&#10;+44 20 7946 0958"
+                          className="bg-white/10 border-white/20 text-white placeholder:text-white/40 min-h-[80px]"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-white/80 text-sm">Invitation Message</Label>
+                        <Textarea
+                          value={inviteMessage}
+                          onChange={(e) => setInviteMessage(e.target.value)}
+                          className="bg-white/10 border-white/20 text-white min-h-[60px]"
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  {/* Contacts Tab */}
+                  <TabsContent value="contacts" className="space-y-4">
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/40" />
+                        <Input
+                          value={contactSearch}
+                          onChange={(e) => setContactSearch(e.target.value)}
+                          placeholder="Search contacts..."
+                          className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                        />
+                      </div>
+                      
+                      {selectedContacts.length > 0 && (
+                        <div className="bg-primary/20 border border-primary/30 rounded-lg p-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-primary font-medium">{selectedContacts.length} contact{selectedContacts.length > 1 ? 's' : ''} selected</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedContacts([])}
+                              className="text-white/60 hover:text-white"
+                            >
+                              Clear all
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="space-y-2 max-h-[200px] overflow-y-auto border border-white/20 rounded-lg p-2">
+                        {filteredContacts.map((contact) => (
+                          <div
+                            key={contact.id}
+                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                              selectedContacts.includes(contact.id)
+                                ? 'bg-primary/20 border-primary'
+                                : 'bg-white/5 border-white/10 hover:bg-white/10'
+                            }`}
+                            onClick={() => toggleContactSelection(contact.id)}
+                          >
+                            <div className="flex-shrink-0">
+                              {selectedContacts.includes(contact.id) ? (
+                                <div className="w-5 h-5 bg-primary rounded flex items-center justify-center">
+                                  <Check className="w-3 h-3 text-white" />
+                                </div>
+                              ) : (
+                                <div className="w-5 h-5 border-2 border-white/30 rounded" />
+                              )}
+                            </div>
+                            
+                            <Avatar className="w-10 h-10">
+                              <AvatarImage src={contact.avatar} />
+                              <AvatarFallback className="bg-primary/20 text-white">
+                                {contact.name.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-white truncate">{contact.name}</span>
+                                <Badge className={contact.isRegistered ? 'bg-green-500/20 text-green-400' : 'bg-orange-500/20 text-orange-400'}>
+                                  {contact.isRegistered ? 'Registered' : 'New'}
+                                </Badge>
+                              </div>
+                              <div className="text-sm text-white/60 truncate">{contact.email}</div>
+                              {contact.phone && (
+                                <div className="text-xs text-white/40">{contact.phone}</div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        
+                        {filteredContacts.length === 0 && (
+                          <div className="text-center py-6 text-white/60">
+                            <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                            <p>No contacts found</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  {/* Share Link Tab */}
+                  <TabsContent value="share" className="space-y-4">
+                    <div className="text-center space-y-4">
+                      <div className="bg-white/5 border border-white/20 rounded-lg p-4">
+                        <div className="flex items-center gap-2 text-sm font-mono text-white/70 mb-3">
+                          <Globe className="w-4 h-4" />
+                          <span>https://zenithwallet.app/join/new-group</span>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            className="flex-1 border-white/20 text-white hover:bg-white/10"
+                            onClick={() => {
+                              navigator.clipboard.writeText('https://zenithwallet.app/join/new-group');
+                              toast({ title: "Link Copied!", description: "Invitation link copied to clipboard" });
+                            }}
+                          >
+                            <Copy className="w-4 h-4 mr-2" />
+                            Copy Link
+                          </Button>
+                          <Button
+                            className="flex-1 bg-gradient-primary text-white"
+                            onClick={() => {
+                              if (navigator.share) {
+                                navigator.share({
+                                  title: `Join ${groupName || 'our group'}`,
+                                  text: `Join our expense group "${groupName || 'New Group'}"!`,
+                                  url: 'https://zenithwallet.app/join/new-group'
+                                });
+                              }
+                            }}
+                          >
+                            <Share2 className="w-4 h-4 mr-2" />
+                            Share
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="text-sm text-white/60">
+                        Share this link with anyone you want to invite to the group
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+                
+                {getInviteCount() > 0 && (
+                  <div className="bg-primary/10 border border-primary/30 rounded-lg p-3">
+                    <div className="text-primary font-medium text-sm">
+                      🎉 {getInviteCount()} invitation{getInviteCount() > 1 ? 's' : ''} ready to send!
+                    </div>
                   </div>
-                ))}
-                <Button 
-                  variant="outline" 
-                  onClick={addMemberField}
-                  className="border-primary/30 text-primary hover:bg-primary/10"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Another Member
-                </Button>
+                )}
               </div>
 
               {/* Action Buttons */}
@@ -578,7 +773,10 @@ const Groups = () => {
                     variant="ghost" 
                     size="sm" 
                     className="flex-1 text-white/60 hover:text-white hover:bg-white/10 hover:bg-primary/20 hover:text-primary transition-all duration-300"
-                    onClick={(e) => { e.stopPropagation(); }}
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      navigate(`/group/${group.id}`, { state: { activeTab: 'balances' } });
+                    }}
                   >
                     <DollarSign className="w-3 h-3 mr-1" />
                     <span className="text-xs">Balances</span>
@@ -587,7 +785,10 @@ const Groups = () => {
                     variant="ghost" 
                     size="sm" 
                     className="flex-1 text-white/60 hover:text-white hover:bg-white/10 hover:bg-primary/20 hover:text-primary transition-all duration-300"
-                    onClick={(e) => { e.stopPropagation(); }}
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      navigate(`/group/${group.id}`, { state: { activeTab: 'expenses' } });
+                    }}
                   >
                     <Receipt className="w-3 h-3 mr-1" />
                     <span className="text-xs">Expenses</span>
@@ -596,7 +797,18 @@ const Groups = () => {
                     variant="ghost" 
                     size="sm" 
                     className="text-white/60 hover:text-white hover:bg-white/10 hover:bg-primary/20 hover:text-primary transition-all duration-300"
-                    onClick={(e) => { e.stopPropagation(); }}
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      if (group.isOwner) {
+                        navigate(`/group/${group.id}`, { state: { activeTab: 'settings' } });
+                      } else {
+                        toast({
+                          title: "Access Restricted",
+                          description: "Only group owners can access settings",
+                          variant: "destructive"
+                        });
+                      }
+                    }}
                   >
                     <Settings className="w-3 h-3" />
                   </Button>

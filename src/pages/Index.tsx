@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import TopNavbar from "@/components/TopNavbar";
-import HorizontalSubNavbar from "@/components/HorizontalSubNavbar";
+import Layout from "@/components/Layout";
 import StickyActionBar from "@/components/StickyActionBar";
-import { AppSidebar } from "@/components/AppSidebar";
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import Dashboard from "./Dashboard";
+import PersonalExpenses from "./PersonalExpenses";
 import CreateGroup from "./CreateGroup";
 import JoinGroup from "./JoinGroup";
 import Wallet from "./Wallet";
@@ -132,8 +130,7 @@ const Index = () => {
         return <History mode={activeMode} />;
       case 'expenses':
         return (
-          <Dashboard 
-            mode="personal" 
+          <PersonalExpenses 
             onAddExpense={() => handleFloatingAction('addExpense')}
             onSendMoney={() => handleFloatingAction('sendMoney')}
             onScanQR={() => handleFloatingAction('scanQR')}
@@ -153,67 +150,19 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col w-full bg-gradient-background">
-      {/* Mobile Layout */}
-      {isMobile ? (
-        <>
-          {/* Mobile Top Navigation */}
-          <TopNavbar 
-            activeMode={activeMode}
-            onModeChange={setActiveMode}
-          />
-          <HorizontalSubNavbar 
-            activeMode={activeMode}
-            activeSubNav={activeSubNav}
-            onSubNavChange={handleNavigation}
-          />
-
-          {/* Mobile Main Content */}
-          <main className="flex-1 overflow-auto">
-            <div className="p-4 pb-24 max-w-7xl mx-auto">
-              <PullToRefresh onRefresh={handleRefresh}>
-                <div className="animate-fade-in">
-                  {renderContent()}
-                </div>
-              </PullToRefresh>
-            </div>
-          </main>
-        </>
-      ) : (
-        /* Desktop Layout with Sidebar */
-        <SidebarProvider>
-          <AppSidebar 
-            activeMode={activeMode}
-            onModeChange={setActiveMode}
-            activeSubNav={activeSubNav}
-            onSubNavChange={handleNavigation}
-          />
-          <SidebarInset>
-            {/* Desktop Header */}
-            <header className="flex items-center gap-4 px-6 py-4 border-b border-white/10 bg-card/50 backdrop-blur-sm">
-              <SidebarTrigger className="mr-2" />
-              <div className="flex-1">
-                <h1 className="text-xl font-semibold text-foreground">
-                  {activeSubNav === 'home' ? `${activeMode === 'group' ? 'Group' : 'Personal'} Dashboard` :
-                   activeSubNav === 'create-group' ? 'Create Group' :
-                   activeSubNav === 'join-group' ? 'Join Group' :
-                   activeSubNav === 'profile' ? 'Profile & Settings' :
-                   activeSubNav.charAt(0).toUpperCase() + activeSubNav.slice(1)}
-                </h1>
-              </div>
-            </header>
-
-            {/* Desktop Main Content */}
-            <main className="flex-1 overflow-auto">
-              <div className="p-6 max-w-7xl mx-auto">
-                <div className="animate-fade-in">
-                  {renderContent()}
-                </div>
-              </div>
-            </main>
-          </SidebarInset>
-        </SidebarProvider>
-      )}
+    <Layout
+      activeMode={activeMode}
+      onModeChange={setActiveMode}
+      activeSubNav={activeSubNav}
+      onSubNavChange={handleNavigation}
+    >
+      <div className="p-4 max-w-7xl mx-auto">
+        <PullToRefresh onRefresh={handleRefresh}>
+          <div className="animate-fade-in">
+            {renderContent()}
+          </div>
+        </PullToRefresh>
+      </div>
 
       {/* Mobile Sticky Action Bar */}
       {isMobile && !(isNewUser && showWelcome && activeSubNav === 'home') && (
@@ -235,26 +184,24 @@ const Index = () => {
           onCalculate={() => handleFloatingAction('calculate')}
         />
       )}
-
-        {/* Add Expense Modal */}
-        <AddExpenseModal 
-          isOpen={showAddExpense}
-          onClose={() => setShowAddExpense(false)}
-          mode={activeMode}
-        />
-
-        {/* Calculator Modal */}
-        <CalculatorModal 
-          isOpen={showCalculator}
-          onClose={() => setShowCalculator(false)}
-        />
-
-      {/* QR Scanner Modal */}
-      <QRScannerModal 
+      
+      {/* Modals */}
+      <AddExpenseModal
+        isOpen={showAddExpense}
+        onClose={() => setShowAddExpense(false)}
+        mode={activeMode}
+      />
+      
+      <CalculatorModal
+        isOpen={showCalculator}
+        onClose={() => setShowCalculator(false)}
+      />
+      
+      <QRScannerModal
         isOpen={showQRScanner}
         onClose={() => setShowQRScanner(false)}
       />
-    </div>
+    </Layout>
   );
 };
 

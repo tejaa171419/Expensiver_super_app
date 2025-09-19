@@ -10,7 +10,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Search, Users, Globe, Lock, UserPlus, Star, TrendingUp, Calendar, Filter, QrCode, Share2, Copy, Check, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import Layout from "@/components/Layout";
 
 interface PublicGroup {
   id: string;
@@ -31,8 +30,6 @@ interface PublicGroup {
 const JoinGroup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [activeMode, setActiveMode] = useState<'group' | 'personal'>('group');
-  const [activeSubNav, setActiveSubNav] = useState('join-group');
   const [searchQuery, setSearchQuery] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -40,18 +37,6 @@ const JoinGroup = () => {
   const [isCodeCopied, setIsCodeCopied] = useState(false);
   const [joinRequestDialogOpen, setJoinRequestDialogOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<PublicGroup | null>(null);
-
-  const handleNavigation = (nav: string) => {
-    if (nav === 'home') {
-      navigate('/groups');
-    } else if (nav === 'create-group') {
-      navigate('/create-group');
-    } else if (nav === 'join-group') {
-      navigate('/join-group');
-    } else {
-      navigate('/');
-    }
-  };
 
   // Mock data with enhanced properties
   const [groups] = useState<PublicGroup[]>([
@@ -234,13 +219,7 @@ const JoinGroup = () => {
   };
 
   return (
-    <Layout
-      activeMode={activeMode}
-      onModeChange={setActiveMode}
-      activeSubNav={activeSubNav}
-      onSubNavChange={handleNavigation}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Enhanced Header */}
         <div className="text-center space-y-6 animate-fade-in">
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
@@ -586,8 +565,7 @@ const JoinGroup = () => {
             )}
           </DialogContent>
         </Dialog>
-      </div>
-    </Layout>
+    </div>
   );
 };
 

@@ -9,8 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Lock, Key, Smartphone, AlertTriangle, CheckCircle, Eye, EyeOff, Download, Trash2, Settings } from "lucide-react";
+import { Shield, Lock, Key, Smartphone, AlertTriangle, CheckCircle, Eye, EyeOff, Download, Trash2, Settings, Monitor, Sidebar, Layout, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigation } from "@/contexts/NavigationContext";
 const passwordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
   newPassword: z.string().min(8, "Password must be at least 8 characters").regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "Password must contain at least one lowercase, one uppercase, and one number"),
@@ -44,6 +45,7 @@ interface LoginSession {
   isCurrent: boolean;
 }
 const SecuritySettings = () => {
+  const { navigationStyle, navigationPreferences, updateNavigationPreference, toggleNavigationStyle } = useNavigation();
   const [securitySettings, setSecuritySettings] = useState<SecuritySettings>({
     twoFactorEnabled: false,
     biometricEnabled: false,
@@ -140,12 +142,169 @@ const SecuritySettings = () => {
         <CardHeader className="bg-card/90 backdrop-blur-lg">
           <CardTitle className="flex items-center gap-2 text-card-foreground">
             <Shield className="w-5 h-5" />
-            Security Settings
+            Security & Navigation Settings
           </CardTitle>
           <CardDescription>
-            Manage your account security, authentication methods, and privacy settings
+            Manage your account security, authentication methods, and navigation preferences
           </CardDescription>
         </CardHeader>
+      </Card>
+
+      {/* Navigation Preferences Section */}
+      <Card className="glass-card">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-card-foreground">
+            <Layout className="w-5 h-5" />
+            Navigation Preferences
+          </CardTitle>
+          <CardDescription>
+            Customize your navigation experience with horizontal navbar or vertical sidebar
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            {/* Navigation Style Toggle */}
+            <div className="p-4 bg-card/50 rounded-lg border border-border/50">
+              <div className="flex items-center justify-between mb-4">
+                <div className="space-y-1">
+                  <h4 className="font-medium text-card-foreground flex items-center gap-2">
+                    <Monitor className="w-4 h-4" />
+                    Current Navigation Style
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    {navigationStyle === 'horizontal' ? 'Traditional horizontal navbar with sub-navigation' : 'Modern vertical sidebar with collapsible sections'}
+                  </p>
+                </div>
+                <Button
+                  onClick={toggleNavigationStyle}
+                  variant="outline"
+                  size="sm"
+                  className="ml-4 transition-all duration-300 hover:scale-105"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Switch to {navigationStyle === 'horizontal' ? 'Sidebar' : 'Horizontal'}
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div 
+                  className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-300 ${
+                    navigationStyle === 'horizontal'
+                      ? 'border-primary bg-primary/10 shadow-lg'
+                      : 'border-border hover:border-primary/50 hover:bg-accent/20'
+                  }`}
+                  onClick={() => updateNavigationPreference('defaultStyle', 'horizontal')}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <Monitor className="w-5 h-5 text-primary" />
+                    <span className="font-semibold">Horizontal Navigation</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Traditional top navigation bar with horizontal sub-navigation tabs
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-1">
+                    <span className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded">Desktop friendly</span>
+                    <span className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded">Familiar</span>
+                  </div>
+                </div>
+                
+                <div 
+                  className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-300 ${
+                    navigationStyle === 'sidebar'
+                      ? 'border-primary bg-primary/10 shadow-lg'
+                      : 'border-border hover:border-primary/50 hover:bg-accent/20'
+                  }`}
+                  onClick={() => updateNavigationPreference('defaultStyle', 'sidebar')}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <Sidebar className="w-5 h-5 text-primary" />
+                    <span className="font-semibold">Sidebar Navigation</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Modern vertical sidebar with collapsible sections and better organization
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-1">
+                    <span className="text-xs px-2 py-1 bg-purple-500/20 text-purple-400 rounded">Modern</span>
+                    <span className="text-xs px-2 py-1 bg-orange-500/20 text-orange-400 rounded">Space efficient</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Navigation Options */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-card-foreground">Remember Navigation Choice</h4>
+                  <p className="text-sm text-muted-foreground">Save your navigation preference for future sessions</p>
+                </div>
+                <Switch 
+                  checked={navigationPreferences.rememberChoice} 
+                  onCheckedChange={(value) => updateNavigationPreference('rememberChoice', value)} 
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-card-foreground">Auto-Switch Navigation</h4>
+                  <p className="text-sm text-muted-foreground">Automatically switch between navigation styles based on screen size</p>
+                </div>
+                <Switch 
+                  checked={navigationPreferences.autoSwitch} 
+                  onCheckedChange={(value) => updateNavigationPreference('autoSwitch', value)} 
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-card-foreground">Enable Navigation Animations</h4>
+                  <p className="text-sm text-muted-foreground">Smooth transitions and hover effects for navigation elements</p>
+                </div>
+                <Switch 
+                  checked={navigationPreferences.enableAnimations} 
+                  onCheckedChange={(value) => updateNavigationPreference('enableAnimations', value)} 
+                />
+              </div>
+              
+              {navigationStyle === 'sidebar' && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-card-foreground">Sidebar Default State</h4>
+                      <p className="text-sm text-muted-foreground">Start with sidebar collapsed by default</p>
+                    </div>
+                    <Switch 
+                      checked={navigationPreferences.sidebarDefaultCollapsed} 
+                      onCheckedChange={(value) => updateNavigationPreference('sidebarDefaultCollapsed', value)} 
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-card-foreground">Show Quick Actions</h4>
+                      <p className="text-sm text-muted-foreground">Display quick action buttons in sidebar header</p>
+                    </div>
+                    <Switch 
+                      checked={navigationPreferences.showQuickActions} 
+                      onCheckedChange={(value) => updateNavigationPreference('showQuickActions', value)} 
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
+            <Alert className="border-primary/20 bg-primary/5">
+              <Settings className="w-4 h-4" />
+              <AlertDescription className="text-sm">
+                <strong>Navigation Tips:</strong> 
+                <br />• <strong>Horizontal:</strong> Traditional top navigation with sub-navigation below - great for wide screens
+                <br />• <strong>Sidebar:</strong> Vertical navigation panel with collapsible sections - better space utilization
+                <br />• <strong>Auto-Switch:</strong> Automatically adapts to your screen size for optimal experience
+                <br />• Changes apply immediately and are saved for future sessions
+              </AlertDescription>
+            </Alert>
+          </div>
+        </CardContent>
       </Card>
 
       {/* Password Management */}
